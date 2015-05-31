@@ -137,7 +137,11 @@ if [ "$DELETE" == "1" ]; then
   echo "Removing from database..."
   $LIBDIR/delete-from-db $USERNAME $PORT $FORCE || exit 1
 
-  if [ "$FORCE" == "1" ]; then
+  APACHESLEFT=`$LIBDIR/get-apaches $USERNAME`
+  if [ "$FORCE" == "1" -o "$APACHESLEFT" == "" ]; then
+    if [ "$APACHESLEFT" == "" ]; then
+      echo "No Apaches left."
+    fi
     echo "Deleting crontab..."
     crontab -u $UNIXUSER -r
 
@@ -150,26 +154,10 @@ if [ "$DELETE" == "1" ]; then
 
     # delete mysql database 
     mysql -u$MYSQLUSER -p$MYSQLPASSWORD -e "DROP DATABASE IF EXISTS \`${DBPREFIX}_$USERNAME\`"
-  else
-    APACHESLEFT=`$LIBDIR/get-apaches $USERNAME`
-    if [ "$APACHESLEFT" == "" ]; then
-      echo "No Apaches left."
-      echo "Deleting crontab..."
-      crontab -u $UNIXUSER -r
-
-      echo "Deleting user and homedir..."
-      userdel -r $UNIXUSER
-
-      echo "Deleting MySQL user and database..."
-      # delete mysql user
-      mysql -u$MYSQLUSER -p$MYSQLPASSWORD -e "DROP USER '${USERPREFIX}_$USERNAME'@'localhost'" 
-
-      # delete mysql database 
-      mysql -u$MYSQLUSER -p$MYSQLPASSWORD -e "DROP DATABASE IF EXISTS \`${DBPREFIX}_$USERNAME\`"
-    else
-      echo "Some Apaches still left, not deleting other stuff"
-    fi
+  elif [ "$APACHESLEFT" != "" ]; then
+    echo "Some Apaches still left, not deleting other stuff"
   fi
+
   echo "Updating perlbal..."
   # delete perlbal setup
   rm /home/perlbal/sites/$PORT-$USERNAME.conf
