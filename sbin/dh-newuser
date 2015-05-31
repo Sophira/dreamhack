@@ -154,6 +154,9 @@ if [ "$DELETE" == "1" ]; then
 
     # delete mysql database 
     mysql -u$MYSQLUSER -p$MYSQLPASSWORD -e "DROP DATABASE IF EXISTS \`${DBPREFIX}_$USERNAME\`"
+
+    # delete test mysql database
+    mysql -u$MYSQLUSER -p$MYSQLPASSWORD -e "DROP DATABASE IF EXISTS \`test_${DBPREFIX}_$USERNAME\`"
   elif [ "$APACHESLEFT" != "" ]; then
     echo "Some Apaches still left, not deleting other stuff"
   fi
@@ -445,6 +448,8 @@ chown $UNIXUSER:$DHGROUP $UHOME/.gitconfig
 # Set up MySQL
 mysql -u$MYSQLUSER -p$MYSQLPASSWORD -e "CREATE DATABASE \`${DBPREFIX}_$USERNAME\`"
 mysql -u$MYSQLUSER -p$MYSQLPASSWORD -e "GRANT ALL PRIVILEGES ON \`${DBPREFIX}_$USERNAME\`.* TO '${USERPREFIX}_$USERNAME'@'localhost' IDENTIFIED BY '$PASSWORD'"
+mysql -u$MYSQLUSER -p$MYSQLPASSWORD -e "CREATE DATABASE \`test_${DBPREFIX}_$USERNAME\`"
+mysql -u$MYSQLUSER -p$MYSQLPASSWORD -e "GRANT ALL PRIVILEGES ON \`test_${DBPREFIX}_$USERNAME\`.* TO '${USERPREFIX}_$USERNAME'@'localhost'"
 
 # create initial LJ config and tweak it for the installation
 # since this deals with an untrusted LJHOME, I'm su'ing this even though it shouldn't cause any problems
